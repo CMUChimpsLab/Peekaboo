@@ -1,0 +1,44 @@
+[
+  {
+    "model": "fft-tabular",
+    "name": "FFT Transform",
+    "datatype": "tabular",
+    "targets": ["freqspectrum"]
+  },
+  {
+    "model": "fft-audio",
+    "name": "FFT Transform",
+    "datatype": "audio",
+    "targets": ["freqspectrum"]
+  },
+  {
+    "model": "brightness",
+    "name": "Image Brightness",
+    "datatype": "image",
+    "targets": ["brightness"]
+  },
+  {
+    "model": "max-stt",
+    "name": "IBM Watson Recognition",
+    "host": "http://54.92.254.6:5001/",
+    "service": "peekaboo-speech-text-service",
+    "datatype": "audio",
+    "targets": ["speech"]
+  },
+  {
+    "model": "heart-rate",
+    "name": "thearn webcam-pulse-detector",
+    "host": "http://54.92.254.6:5002/",
+    "service": "peekaboo-heart-rate-service",
+    "datatype": "video",
+    "targets": ["heart rate"]
+  },
+  {
+    "model": "posenet",
+    "name": "Google PoseNet",
+    "host": "http://192.168.1.217:5005/",
+    "service": "peekaboo-pose-extraction-service",
+    "datatype": "image",
+    "targets": ["pose"]
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "name": "node-red-contrib-peekaboo",
+  "version": "1.0.0",
+  "description": "This node is a data provider node for image data in Peekaboo.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --silent --env node",
+    "testv": "jest --env node"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "cron": "^1.8.2",
+    "fft.js": "^4.0.3",
+    "fluent-ffmpeg": "^2.1.2",
+    "form-data": "^3.0.0",
+    "fs": "0.0.1-security",
+    "is-utf8": "^0.2.1",
+    "jimp": "^0.10.3",
+    "lodash": "^4.17.20",
+    "lodash.clonedeep": "^4.5.0",
+    "mqtt": "^4.2.1",
+    "node-wav": "0.0.2",
+    "q": "1.5.1",
+    "request": "2.83.0",
+    "streamifier": "^0.1.1"
+  },
+  "node-red": {
+    "nodes": {
+      "pull": "pull.js",
+      "push": "push.js",
+      "retrieve": "retrieve.js",
+      "classify": "classify.js",
+      "detect": "detect.js",
+      "extract": "extract.js",
+      "spoof": "spoof.js",
+      "noisify": "noisify.js",
+      "select": "select.js",
+      "aggregate": "aggregate.js",
+      "post": "post.js",
+      "publish": "publish.js",
+      "pkbJoin": "pkbJoin.js",
+      "pkbInject": "pkbInject.js",
+      "resource-dist": "resource-dist.js"
+    }
+  },
+  "author": "haojian jin",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^26.6.3",
+    "node-red": "^1.2.5",
+    "node-red-node-test-helper": "^0.2.5"
+  }
+}

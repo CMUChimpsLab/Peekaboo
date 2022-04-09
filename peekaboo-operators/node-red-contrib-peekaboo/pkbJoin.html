@@ -1,0 +1,104 @@
+<link href="widgets/helptip.css" rel="stylesheet" />
+<script type="text/javascript">
+  RED.nodes.registerType("pkbJoin", {
+    category: "peekaboo",
+    color: "#B7FFD8",
+    defaults: {
+      name: { value: "" },
+      joinmode: { value: "nonblocking" },
+      sendcondition: { value: "first" },
+      blocktimeout: { value: 5 },
+      partsnum: { value: 2 },
+      groupby: { value: "senderID" },
+      squashpayload: { value: false },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-user-secret",
+    label: function () {
+      return this.name || "join";
+    },
+    oneditprepare: function () {
+      var node = this;
+      $("#node-input-joinmode").on("change", function () {
+        var curtarget = $("#node-input-joinmode").val();
+        if (curtarget == "blocking") {
+          $(".timeout-options").show();
+        } else {
+          $(".timeout-options").hide();
+        }
+      });
+
+      $("#node-input-sendcondition").on("change", () => {
+        const sendcondition = $("#node-input-sendcondition").val();
+        $("#timeout-container").hide();
+        $("#numparts-container").hide();
+
+        if (sendcondition == "timeout") {
+          $("#timeout-container").show();
+        } else if (sendcondition === "numparts") {
+          $("#numparts-container").show();
+        } else if (sendcondition === "first" || sendcondition === "both") {
+          $("#timeout-container").show();
+          $("#numparts-container").show();
+        }
+      });
+    },
+    oneditsave: function () {
+      var build = $("#node-input-build").val();
+    },
+  });
+</script>
+<script type="text/html" data-template-name="pkbJoin">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-joinmode"><i class="fa fa-files-o"></i> Mode</label>
+    <select type="text" id="node-input-joinmode" style="width:70%;">
+      <option value="blocking">blocking</option>
+      <option value="nonblocking" selected>non-blocking</option>
+    </select>
+  </div>
+  <div class="form-row timeout-options">
+    <label for="node-input-sendcondition"
+      ><i class="fa fa-paper-plane"></i> Send Condition</label
+    >
+    <select id="node-input-sendcondition">
+      <option value="timeout">Time out</option>
+      <option value="numparts">Number of parts</option>
+      <option value="first">Whichever comes first</option>
+      <option value="both">Both properties</option>
+    </select>
+  </div>
+  <div class="form-row timeout-options" id="timeout-container">
+    <label for="node-input-blocktimeout"
+      ><i class="fa fa-clock-o"></i> Time out (s)</label
+    >
+    <input type="text" id="node-input-blocktimeout" placeholder="5" />
+  </div>
+  <div class="form-row timeout-options" id="numparts-container">
+    <label for="node-input-partsnum"><i class="fa fa-th"></i> Msg parts</label>
+    <input type="text" id="node-input-partsnum" placeholder="2" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-groupby"
+      ><i class="fa fa-sign-in"></i> Group by</label
+    >
+    <input type="text" id="node-input-groupby" placeholder="senderID" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-squashpayload"
+      ><i class="fa fa-compress"></i> Squash payload data
+      <span class="help-tip">
+        <p>
+          Remove parent msg attributes such as `datatype` and `contenttype`
+          and only store the `data` field in the output `data` list
+        </p>
+      </span></label
+    >
+    <input type="checkbox" id="node-input-squashpayload" />
+  </div>
+</script>

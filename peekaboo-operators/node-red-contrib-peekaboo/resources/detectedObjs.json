@@ -1,0 +1,284 @@
+{
+    "image": {
+      "teddy bear": [
+        "MobileNet - COCO"
+      ],
+      "kite": [
+        "MobileNet - COCO"
+      ],
+      "laptop": [
+        "MobileNet - COCO"
+      ],
+      "motorcycle": [
+        "MobileNet - COCO"
+      ],
+      "oven": [
+        "MobileNet - COCO"
+      ],
+      "keyboard": [
+        "MobileNet - COCO"
+      ],
+      "fire hydrant": [
+        "MobileNet - COCO"
+      ],
+      "cup": [
+        "MobileNet - COCO"
+      ],
+      "tv": [
+        "MobileNet - COCO"
+      ],
+      "backpack": [
+        "MobileNet - COCO"
+      ],
+      "bench": [
+        "MobileNet - COCO"
+      ],
+      "orange": [
+        "MobileNet - COCO"
+      ],
+      "skis": [
+        "MobileNet - COCO"
+      ],
+      "bear": [
+        "MobileNet - COCO"
+      ],
+      "vase": [
+        "MobileNet - COCO"
+      ],
+      "spoon": [
+        "MobileNet - COCO"
+      ],
+      "giraffe": [
+        "MobileNet - COCO"
+      ],
+      "background": [
+        "MobileNet - PASCAL VOC"
+      ],
+      "potted plant": [
+        "MobileNet - COCO"
+      ],
+      "sofa": [
+        "MobileNet - PASCAL VOC"
+      ],
+      "baseball glove": [
+        "MobileNet - COCO"
+      ],
+      "bicycle": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ],
+      "frisbee": [
+        "MobileNet - COCO"
+      ],
+      "zebra": [
+        "MobileNet - COCO"
+      ],
+      "tvmonitor": [
+        "MobileNet - PASCAL VOC"
+      ],
+      "chair": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ],
+      "clock": [
+        "MobileNet - COCO"
+      ],
+      "microwave": [
+        "MobileNet - COCO"
+      ],
+      "bird": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ],
+      "knife": [
+        "MobileNet - COCO"
+      ],
+      "umbrella": [
+        "MobileNet - COCO"
+      ],
+      "toothbrush": [
+        "MobileNet - COCO"
+      ],
+      "sink": [
+        "MobileNet - COCO"
+      ],
+      "cow": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ],
+      "baseball bat": [
+        "MobileNet - COCO"
+      ],
+      "sports ball": [
+        "MobileNet - COCO"
+      ],
+      "skateboard": [
+        "MobileNet - COCO"
+      ],
+      "apple": [
+        "MobileNet - COCO"
+      ],
+      "stop sign": [
+        "MobileNet - COCO"
+      ],
+      "tennis racket": [
+        "MobileNet - COCO"
+      ],
+      "snowboard": [
+        "MobileNet - COCO"
+      ],
+      "pottedplant": [
+        "MobileNet - PASCAL VOC"
+      ],
+      "scissors": [
+        "MobileNet - COCO"
+      ],
+      "boat": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ],
+      "sheep": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ],
+      "horse": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ],
+      "motorbike": [
+        "MobileNet - PASCAL VOC"
+      ],
+      "traffic light": [
+        "MobileNet - COCO"
+      ],
+      "refrigerator": [
+        "MobileNet - COCO"
+      ],
+      "banana": [
+        "MobileNet - COCO"
+      ],
+      "fork": [
+        "MobileNet - COCO"
+      ],
+      "bus": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ],
+      "train": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ],
+      "dining table": [
+        "MobileNet - COCO"
+      ],
+      "car": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ],
+      "bed": [
+        "MobileNet - COCO"
+      ],
+      "cat": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ],
+      "donut": [
+        "MobileNet - COCO"
+      ],
+      "aeroplane": [
+        "MobileNet - PASCAL VOC"
+      ],
+      "suitcase": [
+        "MobileNet - COCO"
+      ],
+      "cake": [
+        "MobileNet - COCO"
+      ],
+      "wine glass": [
+        "MobileNet - COCO"
+      ],
+      "toilet": [
+        "MobileNet - COCO"
+      ],
+      "carrot": [
+        "MobileNet - COCO"
+      ],
+      "airplane": [
+        "MobileNet - COCO"
+      ],
+      "mouse": [
+        "MobileNet - COCO"
+      ],
+      "hair drier": [
+        "MobileNet - COCO"
+      ],
+      "toaster": [
+        "MobileNet - COCO"
+      ],
+      "bowl": [
+        "MobileNet - COCO"
+      ],
+      "couch": [
+        "MobileNet - COCO"
+      ],
+      "book": [
+        "MobileNet - COCO"
+      ],
+      "elephant": [
+        "MobileNet - COCO"
+      ],
+      "tie": [
+        "MobileNet - COCO"
+      ],
+      "pizza": [
+        "MobileNet - COCO"
+      ],
+      "sandwich": [
+        "MobileNet - COCO"
+      ],
+      "parking meter": [
+        "MobileNet - COCO"
+      ],
+      "handbag": [
+        "MobileNet - COCO"
+      ],
+      "cell phone": [
+        "MobileNet - COCO"
+      ],
+      "broccoli": [
+        "MobileNet - COCO"
+      ],
+      "diningtable": [
+        "MobileNet - PASCAL VOC"
+      ],
+      "remote": [
+        "MobileNet - COCO"
+      ],
+      "surfboard": [
+        "MobileNet - COCO"
+      ],
+      "hot dog": [
+        "MobileNet - COCO"
+      ],
+      "dog": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ],
+      "face": [
+        "MobileNet - Faces"
+      ],
+      "person": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ],
+      "truck": [
+        "MobileNet - COCO"
+      ],
+      "bottle": [
+        "MobileNet - COCO",
+        "MobileNet - PASCAL VOC"
+      ]
+    },
+    "audio": {},
+    "video": {}
+  }

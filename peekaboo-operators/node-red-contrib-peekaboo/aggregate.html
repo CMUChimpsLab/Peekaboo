@@ -1,0 +1,212 @@
+<link href="widgets/helptip.css" rel="stylesheet" />
+<script src="peekaboo/dom-util.js"></script>
+<script type="text/javascript">
+  RED.nodes.registerType("aggregate", {
+    category: "peekaboo",
+    color: "#E2A0FF",
+    defaults: {
+      name: { value: "aggregate" },
+      datatype: { value: "" },
+      aggregatetarget: { value: ""},
+      customtabularfield: {value: ""},
+      operation: {value: ""},
+      asnewvar: {value: ""},
+      groupby: {value: ""}
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-user-secret",
+    label: function () {
+      return this.name || "aggregate";
+    },
+    oneditprepare: async function () {
+      const node = this;
+
+      // Load model map from dom-util.js
+      const modelMap = await loadModelMap();
+      
+      function updateTargetMenubyDatatype(curtype, curtarget) {
+        if (modelMap[curtype] != null) {
+          var optionlist = modelMap[curtype].concat(["custom"]);
+          updateTargets(optionlist, curtarget, "aggregate");
+        } else if (curtype === "radio") {
+          var optionlist = ["phase", "uuid", "amplitude"];
+          updateTargets(optionlist, curtarget, "aggregate");
+        } else if (curtype === "tabular") {
+          var optionlist = ["custom"];
+          updateTargets(optionlist, curtarget, "aggregate");
+        } else {
+          updateTargets(["custom"], curtarget, "aggregate")
+        }
+      }
+
+      $("#node-input-datatype").on("change", function () {
+        var curtype = $("#node-input-datatype").val();
+        if (curtype) {
+          updateTargetMenubyDatatype(curtype, node.aggregatetarget);
+        }
+      });
+
+      $("#node-input-aggregatetarget").on("change", function () {
+        var curtarget = $("#node-input-aggregatetarget").val();
+        if (curtarget == "custom") {
+          $(".aggregate-customtabularfield").show();        
+        } else {
+          $(".aggregate-customtabularfield").hide();
+        }
+      });
+
+      // Load saved state
+      $("#node-input-datatype").trigger("change");
+      $("#node-input-noisifytarget").trigger("change");
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="aggregate">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-datatype"><i class="fa fa-files-o"></i> Data Type</label>
+    <select type="text" id="node-input-datatype" style="width:70%;">
+      <!-- TODO: support other options in the future. -->
+      <!-- <option value="image" selected>image</option>
+      <option value="video">video</option>
+      <option value="audio">audio</option> -->
+      <option value="radio">radio</option> 
+      <option value="scalar">scalar</option>
+      <option value="tabular" selected>tabular</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label  for="node-input-aggregatetarget"> <i class="fa fa-dot-circle-o"></i> Target  </label>
+    <select type="text" id="node-input-aggregatetarget" style="width:70%;"></select>
+  </div>
+
+  <!-- TODO: in the future, we need to support multiple fields.  -->
+  <div class="form-row aggregate-customtabularfield">
+    <label for="node-input-customtabularfield"><i class="fa fa-file-o"></i> Tabular field</label>
+    <input type="text" id="node-input-customtabularfield" />
+  </div>
+
+  <div class="form-row aggregate-operation">
+    <label for="node-input-operation"><i class="fa fa-file-o"></i> Operation</label>
+    <select type="text" id="node-input-operation" style="width:70%;">
+      <option value="sum" selected>sum</option>
+      <option value="average">average</option>
+      <option value="count">count</option>
+      <!-- <option value="median">median</option> -->
+    </select>
+  </div>
+  
+
+
+  <div class="form-row" id="target-options">
+    <label id="target-options-label">
+      <i class="fa fa-cogs"></i>
+      Options (optional)
+      <i class="fa fa-caret-down" id="target-options-caret"></i>
+    </label>
+    <div id="target-options-container" style="margin-left: 10%;">
+      <div class="form-row groupby">
+        <label for="node-input-groupby"><i class="fa fa-cogs"></i> Group by</label>
+        <input type="text" id="node-input-groupby" style="width:60%;" placeholder=""/> 
+      </div>
+
+      <div class="form-row asnewvar">
+        <label for="node-input-asnewvar"><i class="fa fa-file-o"></i> As 
+          <span class="help-tip">
+            <p>The output field names to use for each aggregated field in fields. 
+              If not specified, names will be automatically generated based on the 
+              operation and target names (e.g., sum_field, average_field).</p>
+          </span>
+        </label>
+        <input type="text" id="node-input-asnewvar" style="width:60%;" placeholder="new variable name" />
+      </div>
+    </div>
+  </div>
+</script>
+
+<!-- aggregate help page -->
+<script type="text/html" data-help-name="aggregate">
+  <p>
+    Generate aggregated results across all matching data objects on the payload.
+  </p>
+
+  <p>
+    Currently supported aggregate operations are sum, average, and count. Data
+    objects that do not match the specified type or lack the target fields
+    are ignored.
+  </p>
+
+  <hr />
+  <h3>Inputs:</h3>
+  <dl class="message-properties">
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>
+        An array of data objects containing raw and/or processed
+        inferences. See
+        <a href="#data-object">data object</a>
+      </dd>
+    </dl>
+    <h3>Outputs:</h3>
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>
+        An array with a single data object containing the aggregated summary
+        of matching data objects.
+      </dd>
+    </dl>
+    <dl class="message-properties">
+      <dt>performance <span class="property-type">dict</span></dt>
+      <dd>Performance information for this node</dd>
+    </dl>
+    <br />
+    <div id="data-object">
+      <h3>data object</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in <i>data</i> e.g. raw</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data stored in <i>data</i> e.g. image, audio</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">Buffer | Jimp | [dict] | any</span></dt>
+        <dd>The raw or noisified data</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>performance <span class="property-type">dict</span></dt>
+        <dd>Performance information for processing this data object</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>inference <span class="property-type">[inference]</span></dt>
+        <dd>An array of inferences extrapolated from this data object.
+          See <a href="#inference">inference</a>
+        </dd>
+      </dl>
+    </div>
+
+    <div id="inference">
+      <h3>inference</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in this inference e.g. face, person</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data in this inference e.g. tabular, scalar</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">[string] | [dict] | any</span></dt>
+        <dd>Inference data extrapolated from the data object</dd>
+      </dl>
+    </div>
+  </dl>
+</script>
+

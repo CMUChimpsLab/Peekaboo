@@ -1,0 +1,191 @@
+<script src="peekaboo/dom-util.js"></script>
+<script type="text/javascript">
+  RED.nodes.registerType("spoof", {
+    category: "peekaboo",
+    color: "#E2A0FF",
+    defaults: {
+      name: { value: "spoof" },
+      datatype: { value: "" },
+      spooftarget: { value: ""},
+      customtabularfield: {value: ""},
+      spoofreplacement: {value: ""}
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-user-secret",
+    label: function () {
+      return this.name || "spoof";
+    },
+    oneditprepare: async function () {
+      const node = this;
+
+      // Load model map from dom-util.js
+      const modelMap = await loadModelMap();
+
+      function updateTargetMenubyDatatype(curtype, curtarget) {
+        if (modelMap[curtype] != null) {
+          var optionlist = modelMap[curtype].concat(["raw"]);
+          updateTargets(optionlist, curtarget, "spoof");
+        } else if (curtype === "radio") {
+          var optionlist = ["raw", "phase", "uuid", "amplitude"];
+          updateTargets(optionlist, curtarget, "spoof");
+        } else if (curtype === "tabular") {
+          var optionlist = ["raw", "custom"];
+          updateTargets(optionlist, curtarget, "spoof");
+        } else {
+          updateTargets(["raw"], curtarget, "spoof")
+        }
+        const curtypeString = ["image", "audio", "video"].includes(curtype) ? curtype : "value";
+        $('#node-input-spoofreplacement').attr('placeholder',
+          'Input a URL of a replacement ' + curtypeString);
+      }
+
+      $("#node-input-datatype").on("change", function () {
+        var curtype = $("#node-input-datatype").val();
+        if (curtype) {
+          updateTargetMenubyDatatype(curtype, node.spooftarget);
+        }
+      });
+
+      $("#node-input-spooftarget").on("change", function () {
+        var curtarget = $("#node-input-spooftarget").val();
+        if (curtarget == "custom") {
+          $(".spoof-customtabularfield").show();
+        } else {
+          $(".spoof-customtabularfield").hide();
+        }
+      });
+
+      // Trigger change
+      $("#node-input-datatype").trigger("change");
+      $("#node-input-spooftarget").trigger("change");
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="spoof">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-datatype"
+      ><i class="fa fa-files-o"></i> Data Type</label
+    >
+    <select type="text" id="node-input-datatype" style="width:70%;">
+      <option value="image" selected>image</option>
+      <option value="video">video</option>
+      <option value="audio">audio</option>
+      <option value="radio">radio</option>
+      <option value="scalar">scalar</option>
+      <option value="tabular">tabular</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-spooftarget">
+      <i class="fa fa-dot-circle-o"></i> Target
+    </label>
+    <select type="text" id="node-input-spooftarget" style="width:70%;"></select>
+  </div>
+
+  <div class="form-row spoof-customtabularfield">
+    <label for="node-input-customtabularfield"
+      ><i class="fa fa-file-o"></i> Tabular field</label
+    >
+    <input type="text" id="node-input-customtabularfield" />
+  </div>
+
+  <div class="form-row spoof-replacement">
+    <label for="node-input-spoofreplacement"
+      ><i class="fa fa-file-o"></i> Replacement</label
+    >
+    <input type="text" id="node-input-spoofreplacement" />
+  </div>
+
+  <div class="form-row" id="target-options">
+    <label id="target-options-label">
+      <i class="fa fa-cogs"></i>
+      Options
+      <i class="fa fa-caret-down" id="target-options-caret"></i>
+    </label>
+    <div id="target-options-container" style="margin-left: 10%;"></div>
+  </div>
+</script>
+
+<!-- spoof help page -->
+<script type="text/html" data-help-name="spoof">
+  <p>
+    Spoofs the data, hiding identifiable features.
+  </p>
+
+  <hr />
+  <h3>Inputs:</h3>
+  <dl class="message-properties">
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>
+        An array of data objects containing raw and/or processed
+        inferences. See
+        <a href="#data-object">data object</a>
+      </dd>
+    </dl>
+    <h3>Outputs:</h3>
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>
+        An array of data objects with spoofed `data` fields. The data
+        will have been spoofed with an appropriate replacement
+        based on the target if its datatype matched
+        this node's configuration. Note: this node consumes any inferences
+        present on a matching data object.
+      </dd>
+    </dl>
+    <dl class="message-properties">
+      <dt>performance <span class="property-type">dict</span></dt>
+      <dd>Performance information for this node</dd>
+    </dl>
+    <br />
+    <div id="data-object">
+      <h3>data object</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in <i>data</i> e.g. raw</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data stored in <i>data</i> e.g. image, audio</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">Buffer | Jimp | [dict] | any</span></dt>
+        <dd>The raw or noisified data</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>performance <span class="property-type">dict</span></dt>
+        <dd>Performance information for processing this data object</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>inference <span class="property-type">[inference]</span></dt>
+        <dd>An array of inferences extrapolated from this data object.
+          See <a href="#inference">inference</a>
+        </dd>
+      </dl>
+    </div>
+
+    <div id="inference">
+      <h3>inference</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in this inference e.g. face, person</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data in this inference e.g. tabular, scalar</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">[string] | [dict] | any</span></dt>
+        <dd>Inference data extrapolated from the data object</dd>
+      </dl>
+    </div>
+  </dl>
+</script>

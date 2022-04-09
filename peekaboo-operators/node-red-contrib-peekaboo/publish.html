@@ -1,0 +1,53 @@
+<script type="text/javascript">
+    RED.nodes.registerType("publish", {
+        category: "peekaboo",
+        color: "#C4F5FC",
+        defaults: {
+            name: { value: "" },
+            serverAddress: { value: "" },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "font-awesome/fa-user-secret",
+        label: function () {
+            return this.name || "publish";
+        },
+        oneditprepare: function () {
+            $("#node-input-host").on("change", function () {
+                this.serverAddress = $("#node-input-host").val();
+            });
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="publish">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name">
+    </div>
+    <div class="form-row remote-url">
+        <label for="node-input-host"><i class="fa fa-file-audio-o"></i> Server address</label>
+        <input type="text" id="node-input-serverAddress" placeholder="Server address" style="width:60%;">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="publish">
+    <p>This node sends a payload to the configured server address via an HTTP POST request.</p>
+      <h3>Inputs</h3>
+        <dl class="message-properties">
+            <dt>payload
+                <span class="property-type">any</span>
+            </dt>
+            <dd> Contains the data to be sent to the cloud </dd>
+        </dl>
+
+        <h3>Outputs</h3>
+        <ol class="node-ports">
+            <li>Standard output
+                <dl class="message-properties">
+                    <dt>payload <span class="property-type">any</span></dt>
+                    <dd>the server's response</dd>
+                </dl>
+            </li>
+        </ol>
+</script>

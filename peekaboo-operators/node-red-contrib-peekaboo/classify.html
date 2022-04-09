@@ -1,0 +1,459 @@
+<link href="widgets/select2.min.css" rel="stylesheet" />
+<script src="widgets/select2.min.js"></script>
+<script src="peekaboo/dom-util.js"></script>
+<script type="text/javascript">
+  RED.nodes.registerType("classify", {
+    category: "peekaboo",
+    color: "#06D6A0",
+    defaults: {
+      name: { value: "" },
+      datatype: { value: "audio" },
+      target: { value: "audio event" },
+      customfield: { value: "" },
+      model: { value: "max-audio" },
+      ruleand: { value: true },
+      rules: { value: [{ op: "eq", val: "", type: "str" }] },
+      "peekaboo-audio-classifier-service": {
+        value: "",
+        type: "peekaboo-audio-classifier-service",
+      },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-user-secret",
+    label: function () {
+      return this.name || "classify";
+    },
+    oneditprepare: async function () {
+      loadInferenceNode(this, "classify");
+      const node = this;
+
+      // Input rule container for custom tabular mode
+      const operators = [
+        { id: "eq", text: "==", inputs: 1, deftype: "num" },
+        { id: "neq", text: "!=", inputs: 1, deftype: "num" },
+        { id: "lt", text: "<", inputs: 1, deftype: "num" },
+        { id: "lte", text: "<=", inputs: 1, deftype: "num" },
+        { id: "gt", text: ">", inputs: 1, deftype: "num" },
+        { id: "gte", text: ">=", inputs: 1, deftype: "num" },
+        { id: "hask", text: "has key", inputs: 1, deftype: "str" },
+        { id: "btwn", text: "between", inputs: 2, deftype: "num" },
+        { id: "cont", text: "contains", inputs: 1, deftype: "str" },
+        { id: "regex", text: "matches regex", inputs: 1, deftype: "str" },
+        { id: "true", text: "is true", inputs: 0 },
+        { id: "false", text: "is false", inputs: 0 },
+        { id: "null", text: "is null", inputs: 0 },
+        { id: "nnull", text: "is not null", inputs: 0 },
+        { id: "istype", text: "is of type", inputs: 1, deftype: "type" },
+        { id: "empty", text: "is empty", inputs: 0 },
+        { id: "nempty", text: "is not empty", inputs: 0 },
+      ];
+      $("#input-rule-container")
+        .css("min-height", "500px")
+        .css("min-width", "500px")
+        .editableList({
+          addItem: function (row, i, rule) {
+            let initialized = false;
+            if (!rule.hasOwnProperty("op")) {
+              rule.op = "eq";
+              rule.val = "";
+              rule.type = "str";
+            }
+            row.css({
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+            });
+            // Populate operator selection
+            const selectOp = $("<select/>", {
+              style: "width: 120px;",
+            }).appendTo(row);
+            operators.forEach((opdata) => {
+              const option = $("<option/>").text(opdata.text).val(opdata.id);
+              selectOp.append(option);
+            });
+
+            // Handle displaying/hiding of input fields
+            const input1 = $("<input/>", {
+              class: "node-input-rule-value",
+              type: "text",
+              style: "margin-left: 5px;",
+            }).appendTo(row);
+            const row2 = $("<div/>", {
+              style: "margin-left: 120px",
+            }).appendTo(row);
+            const input2 = $("<input/>", {
+              class: "node-input-rule-value",
+              type: "text",
+              style: "margin-top: 5px; margin-left: 5px;",
+            }).appendTo(row2);
+
+            input1.on("change", (type, value) => {
+              if (initialized) {
+                rule.type = input1.typedInput("type");
+              }
+              const op = selectOp.val();
+              const opdata = operators.find((data) => data.id == op);
+              if (initialized && opdata.inputs >= 1) {
+                rule.val = input1.typedInput("value");
+              }
+            });
+
+            input2.on("change", (type, value) => {
+              const op = selectOp.val();
+              const opdata = operators.find((data) => data.id == op);
+              if (initialized && opdata.inputs == 2) {
+                rule.val2 = input2.typedInput("value");
+              }
+            });
+
+            // Handle onchange of rule operator
+            selectOp.on("change", function () {
+              const op = selectOp.val();
+              rule.op = op;
+              const opdata = operators.find((data) => data.id == op);
+              input1.typedInput({
+                default: "num",
+                types: ["num", "str"],
+              });
+              input2.typedInput({
+                default: "num",
+                types: ["num", "str"],
+              });
+
+              if (opdata.inputs == 0) {
+                input1.typedInput("hide");
+                row2.hide();
+              } else if (opdata.inputs == 1) {
+                input1.typedInput("show");
+                row2.hide();
+                // Initialize type selection input
+                if (op.deftype == "type") {
+                  input1.typedInput({
+                    default: opdata.deftype,
+                    types: [
+                      {
+                        value: "string",
+                        label: "string",
+                        hasValue: false,
+                        icon: "red/images/typedInput/az.svg",
+                      },
+                      {
+                        value: "number",
+                        label: "number",
+                        hasValue: false,
+                        icon: "red/images/typedInput/09.svg",
+                      },
+                      {
+                        value: "boolean",
+                        label: "boolean",
+                        hasValue: false,
+                        icon: "red/images/typedInput/bool.png",
+                      },
+                      {
+                        value: "array",
+                        label: "array",
+                        hasValue: false,
+                        icon: "red/images/typedInput/json.svg",
+                      },
+                      {
+                        value: "buffer",
+                        label: "buffer",
+                        hasValue: false,
+                        icon: "red/images/typedInput/bin.svg",
+                      },
+                      {
+                        value: "object",
+                        label: "object",
+                        hasValue: false,
+                        icon: "red/images/typedInput/json.svg",
+                      },
+                      {
+                        value: "json",
+                        label: "json",
+                        hasValue: false,
+                        icon: "red/images/typedInput/json.svg",
+                      },
+                      {
+                        value: "undefined",
+                        label: "undefined",
+                        hasValue: false,
+                      },
+                      { value: "null", label: "null", hasValue: false },
+                    ],
+                  });
+                }
+              } else if (opdata.inputs == 2) {
+                input1.typedInput("show");
+                row2.show();
+              }
+            });
+            // Load saved state
+            if (rule.op) {
+              selectOp.val(rule.op);
+            }
+            selectOp.trigger("change");
+            if (rule.type != null) {
+              input1.typedInput("type", rule.type);
+              input2.typedInput("type", rule.type);
+            }
+            if (rule.val != null) {
+              input1.typedInput("value", rule.val);
+            }
+            if (rule.val2 != null) {
+              input2.typedInput("value", rule.val2);
+            }
+            initialized = true;
+          },
+          sortable: true,
+          removable: true,
+        });
+      if (node.rules) {
+        node.rules.forEach((rule) => {
+          $("#input-rule-container").editableList("addItem", { ...rule });
+        });
+      }
+    },
+    oneditsave: async function () {
+      const node = this;
+      node.rules = [];
+      const rules = $("#input-rule-container").editableList("items");
+      rules.each(function (i) {
+        const ruleData = $(this).data("data");
+        node.rules.push({ ...ruleData });
+      });
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="classify">
+  <style>
+    .select2-results {
+      font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+      font-size: 14px;
+    }
+  </style>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" />
+  </div>
+  <!-- Data type selection -->
+  <div class="form-row">
+    <label for="node-input-datatype"
+      ><i class="fa fa-code"></i> Data Type</label
+    >
+    <select
+      type="text"
+      id="node-input-datatype"
+      style="width:70%;"
+      class="js-example-basic-single"
+    ></select>
+  </div>
+  <!-- Target selection -->
+  <div class="form-row">
+    <label for="node-input-target"><i class="fa fa-code"></i> Target</label>
+    <select
+      type="text"
+      id="node-input-target"
+      style="width:70%; font-family: 'sans-serif'"
+      class="js-example-basic-single"
+    ></select>
+  </div>
+  <div class="form-row" id="custom-field-container">
+    <label for="node-input-customfield"
+      ><i class="fa fa-code"></i>
+      Field
+      <span class="help-tip">
+        <p>
+          Field under the <span style="font-family: monospace;">data</span>
+          subfield of a data object. May be nested e.g.
+          <span style="font-family: monospace;">room.sensor.temperature</span>
+        </p>
+      </span>
+    </label>
+    <input type="text" id="node-input-customfield" />
+  </div>
+  <!-- Custom tabular options -->
+  <div class="form-row" id="tabular-custom-container">
+    <label>
+      <i class="fa fa-list"></i>
+      Rules
+    </label>
+    <div class="form-row">
+      <ol id="input-rule-container"></ol>
+    </div>
+    <div class="form-row" id="input-ruleand-container">
+      <select id="node-input-ruleand" style="width:100%; margin-right:5px;">
+        <option value="true" selected>match all rules</option>
+        <option value="false">match at least one rule</option>
+      </select>
+    </div>
+  </div>
+  <!-- Target options -->
+  <div class="form-row" id="target-options">
+    <label id="target-options-label">
+      <i class="fa fa-cogs"></i>
+      Options
+      <i class="fa fa-caret-down" id="target-options-caret"></i>
+    </label>
+    <!-- Model selection -->
+    <div id="target-options-container" style="margin-left: 10%;">
+      <div class="form-row" id="model-select-container">
+        <label for="node-input-model"><i class="fa fa-cog"></i> Model</label>
+        <select
+          type="text"
+          id="node-input-model"
+          style="width:70%; font-family: 'sans-serif'"
+          class="js-example-basic-single"
+        ></select>
+      </div>
+      <!-- Start service containers -->
+      <div id="service-containers">
+        <!-- Audio classifier service -->
+        <div class="form-row" id="peekaboo-audio-classifier-service-container">
+          <label for="node-input-peekaboo-audio-classifier-service"
+            ><i class="fa fa-cloud"></i> Service</label
+          >
+          <input
+            type="text"
+            id="node-input-peekaboo-audio-classifier-service"
+          />
+        </div>
+      </div>
+      <!-- End service containers -->
+    </div>
+  </div>
+</script>
+
+<!-- classify help page -->
+<script type="text/html" data-help-name="classify">
+  <p>
+    Classifies data into different labels based on the specified datatype and
+    target content.
+  </p>
+
+  <hr />
+  <h3>Inputs:</h3>
+  <dl class="message-properties">
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>An array of <a href="#data-object">data objects</a>.</dd>
+    </dl>
+    <h3>Outputs:</h3>
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>An array of data objects.</dd>
+    </dl>
+    <dl class="message-properties">
+      <dt>performance <span class="property-type">dict</span></dt>
+      <dd>Performance information for this node</dd>
+    </dl>
+    <br />
+    <div id="data-object">
+      <h3>data object</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in <i>data</i> e.g. raw</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data stored in <i>data</i> e.g. image, audio</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>
+          data <span class="property-type">Buffer | Jimp | [dict] | any</span>
+        </dt>
+        <dd>The raw data</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>performance <span class="property-type">dict</span></dt>
+        <dd>Performance information for processing this data object</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>inference <span class="property-type">[inference]</span></dt>
+        <dd>
+          An array of inferences extrapolated from this data object. See
+          <a href="#inference">inference</a>
+        </dd>
+      </dl>
+    </div>
+
+    <div id="inference">
+      <h3>inference</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in this inference e.g. face, person</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data in this inference e.g. tabular, scalar</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">[string] | [dict] | any</span></dt>
+        <dd>Inference data extrapolated from the data object</dd>
+      </dl>
+    </div>
+  </dl>
+</script>
+
+<!-- Service configuration nodes -->
+<!-- Audio classifier service -->
+<script type="text/javascript">
+  RED.nodes.registerType("peekaboo-audio-classifier-service", {
+    category: "config",
+    defaults: {
+      host: {
+        value: "http://54.92.254.6:5000/",
+        required: true,
+      },
+
+      name: { value: "cloud" },
+    },
+    credentials: {
+      temp: { type: "text" },
+    },
+    label: function () {
+      return this.name;
+    },
+    oneditprepare: function () {},
+  });
+</script>
+<script type="text/html" data-template-name="peekaboo-audio-classifier-service">
+  <div class="form-row">
+    <label for="node-config-input-host"
+      ><i class="fa fa-globe"></i>
+      Host</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-host"
+      placeholder="http://localhost:5000"
+    />
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-name"
+      ><i class="fa fa-tag"></i>
+      Name</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-name"
+      data-i18n="[placeholder]node-red:common.label.name"
+    />
+  </div>
+</script>
+<script type="text/html" data-help-name="peekaboo-audio-classifier-service">
+  <p>
+    You can set Host to access an Audio Classifier container deployed locally or
+    on the cloud.
+  </p>
+  <h3>Default service</h3>
+  <p><b>Host</b>: http://54.92.254.6:5000/</p>
+  <p>
+    For more information on deploying this container locally, check out our
+    <a
+      href="https://github.com/haojian/data-centered-privacy/tree/master/runtime/_microservices"
+      >GitHub</a
+    >
+  </p>
+</script>

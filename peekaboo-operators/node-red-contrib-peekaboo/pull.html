@@ -1,0 +1,254 @@
+<script src="peekaboo/dom-util.js"></script>
+<script type="text/javascript">
+  RED.nodes.registerType("pull", {
+    category: "peekaboo",
+    color: "#FFC1CF",
+    defaults: {
+      name: { value: "pull" },
+      datatype: { value: "image" },
+      datasource: { value: "emulation" },
+      emulateoption: { value: "" },
+      customUrl: { value: "" },
+      queryParameters: { value: [{ "key": "", "value": "" }] }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-user-secret",
+    label: function () {
+      return this.name || "pull";
+    },
+    oneditprepare: async function () {
+      loadSectionToggle(); // from dom-util.js
+      const node = this;
+
+      const resources = await $.getJSON("provider/resources.json");
+
+      function loadEmulationOptions(datatype) {
+        const resourceCount = resources[datatype].length;
+        if (resourceCount > 0) {
+          $(".emulate-select").show();
+          const emulateOption = $("#node-input-emulateoption").val();
+          if (emulateOption != "custom") {
+            $(".emulate-custom").hide();
+          }
+          $("#node-input-emulateoption").empty();
+          for (let resource of resources[datatype]) {
+            $("#node-input-emulateoption").append(
+              new Option(resource.name, resource.url)
+            );
+          }
+          if (node.emulateoption) {
+            $("#node-input-emulateoption").val(node.emulateoption);
+          }
+        } else {
+          $(".emulate-select").hide();
+          $(".emulate-custom").hide();
+        }
+        $("#node-input-emulateoption").trigger("change");
+      }
+
+      $("#node-input-datatype").on("change", function () {
+        const curtype = $("#node-input-datatype").val();
+        const cursource = $("#node-input-datasource").val();
+        $("#node-input-emulateoption").empty();
+        if (cursource === "emulation") {
+          loadEmulationOptions(curtype);
+        }
+      });
+      
+      $("#node-input-datasource").on("change", function () {
+        const datasource = $("#node-input-datasource").val();
+        if (datasource === "emulation") {
+          $(".driver-bind").hide();
+          $(".emulate-select").show();
+          const datatype = $("#node-input-datatype").val();
+          loadEmulationOptions(datatype);
+        } else {
+          $("#node-input-emulateoption").empty();
+          $(".driver-bind").show();
+          $(".emulate-select").hide();
+          $(".emulate-custom").hide();
+        }
+      });
+
+      $("#node-input-emulateoption").on("change", function () {
+        const emulateOption = $("#node-input-emulateoption").val();
+        if (emulateOption == "custom") {
+          $(".emulate-custom").show();
+        } else {
+          $(".emulate-custom").hide();
+        }
+      });
+
+      $("#query-parameters")
+        .css("min-height", "300px")
+        .editableList({
+        addButton: "Add parameter",
+        addItem: function (row, idx, option) {
+          const { key, value } = option;
+          const rowContainer = $("<div></div>");
+          rowContainer.css({ display: "grid", "grid-template-columns": "1fr 5fr", width: "100%" });
+          
+          const keyField = $("<input type='text' placeholder='key' class='query-param-key'></input>");
+          const valueField = $("<input type='text' placeholder='value' class='query-param-value'></input>");
+
+          keyField.val(key);
+          valueField.val(value);
+
+          rowContainer.append(keyField);
+          rowContainer.append(valueField);
+
+          $(row).append(rowContainer);
+        },
+        sortable: true,
+        removable: true,
+      })
+
+      if (node.queryParameters) {
+        for (const parameter of node.queryParameters) {
+          $("#query-parameters").editableList("addItem", parameter);
+        }
+      }
+
+      // Load saved state
+      $("#node-input-datatype").trigger("change");
+      $("#node-input-datasource").trigger("change");
+    },
+    oneditsave: async function() {
+      const node = this;
+      node.queryParameters = [];
+      const rows = $("#query-parameters").editableList("items");
+      node.queryParameters = [];
+      for (const row of rows) {
+        const key = $(row).find(".query-param-key").val();
+        const value = $(row).find(".query-param-value").val();
+        node.queryParameters.push({ key, value })
+      }
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="pull">
+
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-datatype"><i class="fa fa-files-o"></i> Data Type</label>
+    <select type="text" id="node-input-datatype" style="width:70%;">
+      <option value="image" selected>image</option>
+      <option value="video">video</option>
+      <option value="audio">audio</option>
+      <option value="radio">radio</option>
+      <option value="scalar">scalar</option>
+      <option value="tabular">tabular</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-datasource"><i class="fa fa-list"></i> Data Source</label>
+    <select type="text" id="node-input-datasource" style="width:70%;">
+      <option value="emulation">Emulation</option>
+      <option value="hardware">Hardware</option>
+    </select>
+  </div>
+
+  <div class="form-row emulate-select">
+    <label for="node-input-emulateoption"><i class="fa fa-file-o"></i> Select</label>
+    <select type="text" id="node-input-emulateoption" style="width:70%;"></select>
+  </div>
+
+  <div class="form-row emulate-custom">
+    <label for="node-input-customUrl"><i class="fa fa-file-o"></i> Data URL</label>
+    <input type="text" id="node-input-customUrl" placeholder="remote URL" style="width:60%;">
+  </div>
+
+  <div class="form-row emulate-custom">
+    <label for="query-parameters"><i class="fa fa-list"></i> Query parameters</label>
+    <ol id="query-parameters"></ol>
+  </div>
+
+  <div class="form-row driver-bind">
+    <label for="node-input-driver-bind"><i class="fa fa-file-o"></i> Driver</label>
+    <input type="text" id="node-input-driver-bind" placeholder="driver address" style="width:60%;">
+  </div>
+
+  <div class="form-row" id="taskOptionsContainer">
+    <label id="taskOptionsLabel">
+      <i class="fa fa-cogs"></i>
+        Options
+      <i class="fa fa-caret-down" id="taskOptionsCaret"></i>
+    </label>
+    <div id="taskOptions" style="margin-left: 10%;"></div>
+</div>
+
+</script>
+
+<script type="text/html" data-help-name="pull">
+  <p>
+      Pulls data from a remote source.
+  </p>
+  <p> 
+      This node supports two modes: Hardware and Emulation.
+      In Hardware mode, the node will pull data from a local hardware driver.
+      Developers need to configure the local driver address.
+      In Emulation mode, the node will download data from an online source.
+  </p>
+  <p>
+      Received data is appended to the payload as a 
+      <a href="#data-object">data object</a>
+  </p>
+  <hr />
+  <h3>Inputs:</h3>
+  <dl class="message-properties">
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>
+        An array of data objects.
+      </dd>
+    </dl>
+    <h3>Outputs:</h3>
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>
+        An array of data objects.
+      </dd>
+    </dl>
+    <dl class="message-properties">
+      <dt>performance <span class="property-type">dict</span></dt>
+      <dd>Performance information for this node</dd>
+    </dl>
+    <br />
+    <div id="data-object">
+      <h3>data object</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in <i>data</i> e.g. raw</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data stored in <i>data</i> e.g. image, audio</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">Buffer | Jimp | [dict] | any</span></dt>
+        <dd>The raw data</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>performance <span class="property-type">dict</span></dt>
+        <dd>Performance information for processing this data object</dd>
+      </dl>
+    </div>
+  </dl>
+
+  <h3>Details</h3>
+      <p>The video driver sends the image encoded in <code>Base64</code> string in a WebSocket connection.</p>
+      <p>The device characteristics can be stored
+      by <code>msg.devicemeta</code>.</p>
+
+  <h3>References</h3>
+      <ul>
+          <li><a href="https://github.com/oliver-moran/jimp">JIMP - JavaScript Image Manipulation Program</a> - full description of <code>msg.payload</code> property</li>
+      </ul>
+</script>

@@ -1,0 +1,26 @@
+<script type="text/javascript">
+    RED.nodes.registerType("resource-dist", {
+        category: "config",
+        color: "#3FADB5",
+        defaults: {
+            name: { value: "" }
+        },
+        inputs: 0,
+        outputs: 0,
+        icon: "font-awesome/fa-user-secret",
+        label: function () {
+            return this.name || "Resource Dist";
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="resource-dist">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="resource-dist">
+    <p>This node distributes resources for use by other peekaboo nodes.</p>
+</script>

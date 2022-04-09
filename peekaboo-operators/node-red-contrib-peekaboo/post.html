@@ -1,0 +1,80 @@
+<script type="text/javascript">
+    RED.nodes.registerType("post", {
+        category: "peekaboo",
+        color: "#C4F5FC",
+        defaults: {
+            name: { value: "" },
+            datatype: { value: "" },
+            method: { value: "form" },
+            serveraddress: { value: "" },
+            api_key_field: { value: "" },
+            api_key: { value: "" },
+            data_id: { value: "" }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "font-awesome/fa-user-secret",
+        label: function () {
+            return this.name || "post";
+        },
+        oneditprepare: function () {
+            $("#node-input-host").on("change", function () {
+                this.serveraddress = $("#node-input-host").val();
+            });
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="post">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-datatype"><i class="fa fa-files-o"></i> Data Type</label>
+        <select type="text" id="node-input-datatype" style="width:70%;">
+          <option value="image" selected>image</option>
+          <option value="video">video</option>
+          <option value="audio">audio</option>
+          <option value="radio">radio</option>
+          <option value="scalar">scalar</option>
+          <option value="tabular">tabular</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-method"><i class="fa fa-files-o"></i> Method</label>
+        <select type="text" id="node-input-method" style="width:70%;">
+          <option value="form" selected>POST form-data</option>
+          <option value="body">POST JSON Body</option>
+          <option value="ifttt">IFTTT Webhook</option>
+        </select>
+    </div>
+    <div class="form-row remote-url">
+        <label for="node-input-serveraddress"><i class="fa fa-link"></i> Server address</label>
+        <input type="text" id="node-input-serveraddress" placeholder="Server address" style="width:70%;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-api_key_field"><i class="fa fa-search"></i> API Key Field</label>
+        <input type="text" id="node-input-api_key_field" placeholder="API Key Field" style="width:70%;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-api_key"><i class="fa fa-lock"></i> API Key</label>
+        <input type="text" id="node-input-api_key" placeholder="API Key Value" style="width:70%;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-data_id"><i class="fa fa-lock"></i> Data ID</label>
+        <input type="text" id="node-input-data_id" placeholder="Unique data identifier" style="width:70%;">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="post">
+    <p>Sends payload to the configured server address via an HTTP POST request.</p>
+      <h3>Inputs</h3>
+      <dl class="message-properties">
+          <dt>payload
+              <span class="property-type">any</span>
+          </dt>
+          <dd> Contains the data to be sent to the cloud </dd>
+      </dl>
+
+</script>

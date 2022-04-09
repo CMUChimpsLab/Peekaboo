@@ -1,0 +1,94 @@
+{
+  "image": [
+    {
+      "name": "Grace Hopper.jpg",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/grace_hopper.jpg"
+    },
+    {
+      "name": "Doorbell scene.jpg",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/videodoorbell.jpg"
+    },
+    {
+      "name": "Living room.jpg",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/falldown1.jpg"
+    },
+    {
+      "name": "3-people.jpg",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/3-people.jpg"
+    },
+    {
+      "name": "Home intruder.jpg",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/home-intruder.jpg"
+    },
+    {
+      "name": "Human pose.jpg",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/tree-pose.jpg"
+    },
+    {
+      "name": "apple.jpg",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/apple.jpg"
+    },
+    {
+      "name": "custom",
+      "url": "custom"
+    }
+  ],
+  "video": [
+    {
+      "name": "earth_640.mp4",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/earth_640.mp4"
+    },
+    {
+      "name": "custom",
+      "url": "custom"
+    }
+  ],
+  "audio": [
+    {
+      "name": "Short (2s): PDAs05_023_1",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/voice1.wav"
+    },
+    {
+      "name": "Medium (6s): PDAs06_086_1",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/voice2.wav"
+    },
+    {
+      "name": "Long (13s): PDAs07_128_1",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/voice3.wav"
+    },
+    {
+      "name": "Baby Crying",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/baby-crying-04.wav"
+    },
+    {
+      "name": "custom",
+      "url": "custom"
+    }
+  ],
+  "radio": [
+    {
+      "name": "Sample 1",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/rfid-sample1.txt"
+    },
+    {
+      "name": "custom",
+      "url": "custom"
+    }
+  ],
+  "scalar": [
+    {
+      "name": "custom",
+      "url": "custom"
+    }
+  ],
+  "tabular": [
+    {
+      "name": "TV log: 100 entries",
+      "url": "https://peekaboo-resource.s3.amazonaws.com/emulator/tvlog.js"
+    },
+    {
+      "name": "custom",
+      "url": "custom"
+    }
+  ]
+}

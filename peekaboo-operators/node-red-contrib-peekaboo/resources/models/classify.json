@@ -1,0 +1,20 @@
+[
+  {
+    "model": "max-audio",
+    "name": "IBM MAX Audio Classifier",
+    "host": "http://54.92.254.6:5000/",
+    "service": "peekaboo-audio-classifier-service",
+    "datatype": "audio",
+    "targets": ["audio event"]
+  },
+  {
+    "model": "tabular-custom",
+    "datatype": "tabular",
+    "targets": ["custom"]
+  },
+  {
+    "model": "scalar-custom",
+    "datatype": "scalar",
+    "targets": ["custom"]
+  }
+]

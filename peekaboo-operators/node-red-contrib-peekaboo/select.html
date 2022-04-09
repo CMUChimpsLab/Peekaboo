@@ -1,0 +1,248 @@
+<link href="widgets/select2.min.css" rel="stylesheet" />
+<script src="widgets/select2.min.js"></script>
+<script src="peekaboo/dom-util.js"></script>
+<link href="widgets/helptip.css" rel="stylesheet" />
+<script type="text/javascript">
+  RED.nodes.registerType("select", {
+    category: "peekaboo",
+    color: "#E2A0FF",
+    defaults: {
+      name: { value: "select" },
+      datatype: { value: "" },
+      selecttarget: { value: "" },
+      customtabularfield: { value: "" },
+      audioevent: { value: "" },
+      includechildren: { value: false }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-user-secret",
+    label: function () {
+      return this.name || "select";
+    },
+    oneditprepare: async function () {
+      const node = this;
+
+      const audioOntology = await $.getJSON("resources/ontology.json");
+      const audioLabels = audioOntology.map(label => label.name).sort();
+      const selectData = audioLabels.map(label => {
+        return { id: label, text: label };
+      });
+
+      // Populate audio event select dropdown
+      $("#node-input-audioevent").select2({
+        data: selectData
+      });
+
+      // Load model map from dom-util.js
+      const modelMap = await loadModelMap();
+
+      function updateTargetMenubyDatatype(curtype, curtarget) {
+        if (modelMap[curtype] != null) {
+          var optionlist = modelMap[curtype];
+          updateTargets(optionlist, curtarget, "select");
+        } else if (curtype == "audio") {
+          var optionlist = ["audio event"];
+          updateTargets(optionlist, curtarget, "select");
+        } else if (curtype === "radio") {
+          var optionlist = ["phase", "uuid", "amplitude"];
+          updateTargets(optionlist, curtarget, "select");
+        } else if (curtype === "tabular") {
+          var optionlist = ["custom"];
+          updateTargets(optionlist, curtarget, "select");
+        } else {
+          updateTargets(["raw"], curtarget, "select");
+        }
+      }
+
+      $("#node-input-datatype").on("change", function () {
+        var curtype = $("#node-input-datatype").val();
+        if (curtype) {
+          updateTargetMenubyDatatype(curtype, node.selecttarget);
+        }
+      });
+
+      $("#node-input-selecttarget").on("change", function () {
+        var curtarget = $("#node-input-selecttarget").val();
+        if (curtarget == "custom") {
+          $(".select-customtabularfield").show();
+        } else {
+          $(".select-customtabularfield").hide();
+        }
+        if (curtarget == "audio event") {
+          $("#select-audio-options-container").show();
+        } else {
+          $("#select-audio-options-container").hide();
+        }
+      });
+
+      // Load saved state
+      $("#node-input-datatype").trigger("change");
+      $("#node-input-selecttarget").trigger("change");
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="select">
+  <style>
+    .select2-results {
+      font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+      font-size: 14px;
+    }
+  </style>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-datatype"
+      ><i class="fa fa-files-o"></i> Data Type</label
+    >
+    <select type="text" id="node-input-datatype" style="width:70%;">
+      <option value="image" selected>image</option>
+      <!-- <option value="video">video</option> -->
+      <option value="audio">audio</option>
+      <option value="radio">radio</option>
+      <!-- <option value="scalar">scalar</option> -->
+      <option value="tabular">tabular</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-selecttarget">
+      <i class="fa fa-dot-circle-o"></i> Target
+    </label>
+    <select
+      type="text"
+      id="node-input-selecttarget"
+      style="width:70%;"
+    ></select>
+  </div>
+
+  <div class="form-row select-customtabularfield">
+    <label for="node-input-customtabularfield"
+      ><i class="fa fa-file-o"></i> Tabular field</label
+    >
+    <input type="text" id="node-input-customtabularfield" />
+  </div>
+
+  <div class="form-row" id="target-options">
+    <label id="target-options-label">
+      <i class="fa fa-cogs"></i>
+      Options
+      <i class="fa fa-caret-down" id="target-options-caret"></i>
+    </label>
+    <div id="target-options-container" style="margin-left: 10%;">
+      <div id="select-audio-options-container">
+        <label for="node-input-audioevent">
+          <i class="fa fa-music"></i> Audio Event
+        </label>
+        <select
+          type="text"
+          id="node-input-audioevent"
+          style="width:70%; font-family: 'sans-serif'"
+          class="js-example-basic-single"
+        ></select>
+        <input
+          type="checkbox"
+          id="node-input-includechildren"
+          style="width:25px; margin-bottom: 5px;" />
+        <label for="node-input-includechildren">
+          Include Children
+          <span class="help-tip">
+            <p>If checked, this operator will also propagate payloads containing 
+              labels that are children of the currently configured label.</p>
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+</script>
+
+<!-- filter-content help page -->
+<script type="text/html" data-help-name="select">
+  <p>
+    Selects only specific features of the data to propagate.
+  </p>
+  <p>
+    For images, this
+    selects the bounding boxes specified from inferences on the same data
+    object and places it on the payload as a separate data object. This removes
+    the original data object from the payload.
+  </p>
+  <p>
+    For audio, this selectively propagates a data object depending
+    on if an inference with a matching audio event was detected.
+  </p>
+  <p>  
+    For radio and tabular types, it selective propagates fields based on the
+    configuration.
+  </p>
+
+  <hr />
+  <h3>Inputs:</h3>
+  <dl class="message-properties">
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>
+        An array of data objects containing raw and/or processed
+        inferences. See
+        <a href="#data-object">data object</a>
+      </dd>
+    </dl>
+    <h3>Outputs:</h3>
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>
+        An array of selected data objects. The data will have been sourced from
+        the original `data` fields and selected using `inference` fields.
+      </dd>
+    </dl>
+    <dl class="message-properties">
+      <dt>performance <span class="property-type">dict</span></dt>
+      <dd>Performance information for this node</dd>
+    </dl>
+    <br />
+    <div id="data-object">
+      <h3>data object</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in <i>data</i> e.g. raw</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data stored in <i>data</i> e.g. image, audio</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">Buffer | Jimp | [dict] | any</span></dt>
+        <dd>The raw or noisified data</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>performance <span class="property-type">dict</span></dt>
+        <dd>Performance information for processing this data object</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>inference <span class="property-type">[inference]</span></dt>
+        <dd>An array of inferences extrapolated from this data object.
+          See <a href="#inference">inference</a>
+        </dd>
+      </dl>
+    </div>
+
+    <div id="inference">
+      <h3>inference</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in this inference e.g. face, person</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data in this inference e.g. tabular, scalar</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">[string] | [dict] | any</span></dt>
+        <dd>Inference data extrapolated from the data object</dd>
+      </dl>
+    </div>
+  </dl>
+</script>

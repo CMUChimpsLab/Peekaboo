@@ -1,0 +1,20 @@
+{
+    "image": {
+      "pose": [
+        "Google Posenet"
+      ]
+    },
+    "audio": {
+      "freqspectrum": [
+        "FFT Transform"
+      ],
+      "speech": [
+        "IBM Waston Recognition"
+      ]
+    },
+    "video": {
+      "heartrate": [
+        "Heart rate from face videos"
+      ]
+    }
+  }

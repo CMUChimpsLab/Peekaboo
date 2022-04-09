@@ -1,0 +1,139 @@
+<script type="text/javascript">
+  RED.nodes.registerType("retrieve", {
+    category: "peekaboo",
+    color: "#FFC1CF",
+    defaults: {
+      name: { value: "retrieve" },
+      datatype: { value: "audio" },
+      target: { value: "" },
+      nonexist: {value: "false"}
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-user-secret",
+    label: function () {
+      return this.name || "retrieve";
+    },
+    oneditprepare: function () {
+      $("#node-input-inferencetype").on("change", function () {
+        const inferenceType = $("#node-input-inferencetype").val();
+        if (inferenceType === "classify") {
+          $("#input-target").show();
+        } else {
+          $("#input-target").hide();
+        }
+      });
+      $("#input-target").hide();
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="retrieve">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-datatype"
+      ><i class="fa fa-code"></i> Data Type</label>
+    <select type="text" id="node-input-datatype" style="width:70%;">
+      <option value="image" selected>image</option>
+      <option value="video">video</option>
+      <option value="audio">audio</option>
+      <option value="radio">radio</option>
+      <option value="scalar">scalar</option>
+      <option value="tabular">tabular</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+      <label for="node-input-target"><i class="fa fa-commenting-o"></i> Target content</label>
+      <input type="text" id="node-input-target">
+  </div>
+
+  <div class="form-row" id="input-target">
+      <label for="node-input-target"><i class="fa fa-search"></i> Target Object</label>
+      <input type="text" id="node-input-target" placeholder="target object (blank for any)" style="width:60%;">
+  </div>
+
+  <div class="form-row" id="input-nonexist">
+    <label>&nbsp;</label>
+    <input type="checkbox" id="node-input-nonexist" style="display: inline-block; width: auto; vertical-align: top;">
+    <label for="node-input-nonexist" style="width: 70%;" >Propagate message only if it does not contain the target content</label> 
+    <!-- Propagate message only if it does not contain the target content -->
+</div>
+</script>
+
+<!-- retrieve help page -->
+<script type="text/html" data-help-name="retrieve">
+  <p>
+    Selectively propagates data objects on the payload only if they contain
+    matching target content (inference labels)
+  </p>
+
+  <hr />
+  <h3>Inputs:</h3>
+  <dl class="message-properties">
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>
+        An array of data objects containing raw and/or processed
+        inferences. See
+        <a href="#data-object">data object</a>
+      </dd>
+    </dl>
+    <h3>Outputs:</h3>
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>
+        An array of data objects that matched the configured specification.
+      </dd>
+    </dl>
+    <dl class="message-properties">
+      <dt>performance <span class="property-type">dict</span></dt>
+      <dd>Performance information for this node</dd>
+    </dl>
+    <br />
+    <div id="data-object">
+      <h3>data object</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in <i>data</i> e.g. raw</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data stored in <i>data</i> e.g. image, audio</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">Buffer | Jimp | [dict] | any</span></dt>
+        <dd>The raw data</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>performance <span class="property-type">dict</span></dt>
+        <dd>Performance information for processing this data object</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>inference <span class="property-type">[inference]</span></dt>
+        <dd>An array of inferences extrapolated from this data object.
+          See <a href="#inference">inference</a>
+        </dd>
+      </dl>
+    </div>
+
+    <div id="inference">
+      <h3>inference</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in this inference e.g. face, person</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data in this inference e.g. tabular, scalar</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">[string] | [dict] | any</span></dt>
+        <dd>Inference data extrapolated from the data object</dd>
+      </dl>
+    </div>
+  </dl>
+</script>

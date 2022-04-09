@@ -1,0 +1,541 @@
+<link href="widgets/select2.min.css" rel="stylesheet" />
+<script src="widgets/select2.min.js"></script>
+<script src="peekaboo/dom-util.js"></script>
+<script type="text/javascript">
+  RED.nodes.registerType("detect", {
+    category: "peekaboo",
+    color: "#06D6A0",
+    defaults: {
+      name: { value: "" },
+      datatype: { value: "image" },
+      target: { value: "face" },
+      model: { value: "haar" },
+      tabularField: { value: "accelerationX" },
+      sampleCount: { value: "50" },
+      occupancyThreshold: { value: "0.3" },
+      occupancyInterval: { value: "60" },
+      "peekaboo-human-detector-service": {
+        value: "",
+        type: "peekaboo-human-detector-service",
+      },
+      "peekaboo-object-detection-service": {
+        value: "",
+        type: "peekaboo-object-detection-service",
+      },
+      "peekaboo-face-detection-service": {
+        value: "",
+        type: "peekaboo-face-detection-service",
+      },
+      "peekaboo-voice-activity-detector-service": {
+        value: "",
+        type: "peekaboo-voice-activity-detector-service",
+      },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-user-secret",
+    label: function () {
+      return this.name || "detect";
+    },
+    oneditprepare: async function () {
+      loadInferenceNode(this, "detect");
+
+      const toggleFieldVisibility = () => {
+        $("#tabularField-input").hide();
+        const target = $("#node-input-target").val();
+        const datatype = $("#node-input-datatype").val();
+        if (datatype === "tabular" && target === "accelerometer data") {
+          $(".tabular-accelerometer").show();
+        } else {
+          $(".tabular-accelerometer").hide();
+        }
+      };
+
+      $("#node-input-datatype").on("change", toggleFieldVisibility);
+      $("#node-input-target").on("change", toggleFieldVisibility);
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="detect">
+  <style>
+    .select2-results {
+      font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+      font-size: 14px;
+    }
+  </style>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" />
+  </div>
+  <!-- Datatype selection -->
+  <div class="form-row">
+    <label for="node-input-datatype"
+      ><i class="fa fa-code"></i> Data Type</label
+    >
+    <select
+      type="text"
+      id="node-input-datatype"
+      style="width:70%;"
+      class="js-example-basic-single"
+    ></select>
+  </div>
+  <!-- Target selection -->
+  <div class="form-row">
+    <label for="node-input-target"><i class="fa fa-code"></i> Target</label>
+    <select
+      type="text"
+      id="node-input-target"
+      style="width:70%; font-family: 'sans-serif'"
+      class="js-example-basic-single"
+    ></select>
+  </div>
+  <!-- Target options -->
+  <div class="form-row" id="target-options">
+    <label id="target-options-label">
+      <i class="fa fa-cogs"></i>
+      Options
+      <i class="fa fa-caret-down" id="target-options-caret"></i>
+    </label>
+    <!-- Model selection -->
+    <div id="target-options-container" style="margin-left: 10%;">
+      <div class="form-row">
+        <label for="node-input-model"><i class="fa fa-cog"></i> Model</label>
+        <select
+          type="text"
+          id="node-input-model"
+          style="width:70%; font-family: 'sans-serif'"
+          class="js-example-basic-single"
+        ></select>
+      </div>
+      <!-- Start service containers -->
+      <div id="service-containers">
+        <!-- Human detector service -->
+        <div class="form-row" id="peekaboo-human-detector-service-container">
+          <label for="node-input-peekaboo-human-detector-service"
+            ><i class="fa fa-cloud"></i> Connection</label
+          >
+          <input type="text" id="node-input-peekaboo-human-detector-service" />
+        </div>
+        <!-- Object detection service -->
+        <div class="form-row" id="peekaboo-object-detection-service-container">
+          <label for="node-input-peekaboo-object-detection-service"
+            ><i class="fa fa-cloud"></i> Connection</label
+          >
+          <input
+            type="text"
+            id="node-input-peekaboo-object-detection-service"
+          />
+        </div>
+        <!-- Face detection service -->
+        <div class="form-row" id="peekaboo-face-detection-service-container">
+          <label for="node-input-peekaboo-face-detection-service"
+            ><i class="fa fa-cloud"></i> Service</label
+          >
+          <input type="text" id="node-input-peekaboo-face-detection-service" />
+        </div>
+        <!-- Voice activity detection service -->
+        <div
+          class="form-row"
+          id="peekaboo-voice-activity-detector-service-container"
+        >
+          <label for="node-input-peekaboo-voice-activity-detector-service"
+            ><i class="fa fa-cloud"></i> Service</label
+          >
+          <input
+            type="text"
+            id="node-input-peekaboo-voice-activity-detector-service"
+          />
+        </div>
+      </div>
+      <!-- End service containers -->
+      <div class="form-row tabular-accelerometer" id="tabularField-input">
+        <label for="node-input-tabularField"
+          ><i class="fa fa-cogs"></i> Tabular Field</label
+        >
+        <input
+          type="text"
+          id="node-input-tabularField"
+          style="width:20%;"
+          placeholder="acceleration"
+        />
+      </div>
+      <div class="form-row tabular-accelerometer" id="sampleCount-input">
+        <label for="node-input-sampleCount"
+          ><i class="fa fa-cogs"></i> Samples to store
+          <span class="help-tip">
+            <p>
+              Number of samples to collect as basis for ambient accelerometer
+              values
+            </p>
+          </span>
+        </label>
+        <input
+          type="text"
+          id="node-input-sampleCount"
+          style="width:20%;"
+          placeholder="50"
+        />
+      </div>
+      <div class="form-row tabular-accelerometer" id="occupancyThreshold-input">
+        <label for="node-input-occupancyThreshold">
+          <i class="fa fa-cogs"></i> Occupancy Threshold
+          <span class="help-tip">
+            <p>
+              Percentage difference of accelerometer magnitude to infer
+              occupancy. Lower values are more susceptible to noise. Higher
+              values are less sensitive to subtle movements.
+            </p>
+          </span>
+        </label>
+        <input
+          type="text"
+          id="node-input-occupancyThreshold"
+          style="width:20%;"
+          placeholder="0.3"
+        />
+      </div>
+      <div class="form-row tabular-accelerometer" id="occupancyInterval-input">
+        <label for="node-input-occupancyInterval">
+          <i class="fa fa-cogs"></i> Occupancy Checking Interval
+          <span class="help-tip">
+            <p>
+              Sets the number of seconds between each occupancy measurement. In
+              between each measurement, occupancy values are based on the last
+              computed measurement
+            </p>
+          </span>
+        </label>
+        <input
+          type="text"
+          id="node-input-occupancyInterval"
+          style="width:20%;"
+          placeholder="60"
+        />
+      </div>
+    </div>
+  </div>
+</script>
+
+<!-- detect help page -->
+<script type="text/html" data-help-name="detect">
+  <p>
+    Detects specific targets in the data and outputs information related to
+    those targets e.g. bounding boxes.
+  </p>
+
+  <hr />
+  <h3>Inputs:</h3>
+  <dl class="message-properties">
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>An array of <a href="#data-object">data objects</a>.</dd>
+    </dl>
+    <h3>Outputs:</h3>
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>
+        An array of data objects containing raw and/or processed inferences.
+      </dd>
+    </dl>
+    <dl class="message-properties">
+      <dt>performance <span class="property-type">dict</span></dt>
+      <dd>Performance information for this node</dd>
+    </dl>
+    <br />
+    <div id="data-object">
+      <h3>data object</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in <i>data</i> e.g. raw</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data stored in <i>data</i> e.g. image, audio</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>
+          data <span class="property-type">Buffer | Jimp | [dict] | any</span>
+        </dt>
+        <dd>The raw data</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>performance <span class="property-type">dict</span></dt>
+        <dd>Performance information for processing this data object</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>inference <span class="property-type">[inference]</span></dt>
+        <dd>
+          An array of inferences extrapolated from this data object. See
+          <a href="#inference">inference</a>
+        </dd>
+      </dl>
+    </div>
+
+    <div id="inference">
+      <h3>inference</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in this inference e.g. face, person</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data in this inference e.g. tabular, scalar</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">[string] | [dict] | any</span></dt>
+        <dd>Inference data extrapolated from the data object</dd>
+      </dl>
+    </div>
+  </dl>
+</script>
+
+<!-- Service configuration nodes -->
+<!-- Human detector service -->
+<script type="text/javascript">
+  RED.nodes.registerType("peekaboo-human-detector-service", {
+    category: "config",
+    defaults: {
+      host: {
+        value: "http://54.92.254.6:5003/",
+        required: true,
+      },
+      name: { value: "cloud" },
+    },
+    credentials: {
+      temp: { type: "text" },
+    },
+    label: function () {
+      return this.name;
+    },
+    oneditprepare: function () {},
+  });
+</script>
+<script type="text/html" data-template-name="peekaboo-human-detector-service">
+  <div class="form-row">
+    <label for="node-config-input-host"
+      ><i class="fa fa-globe"></i>
+      Host</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-host"
+      placeholder="http://54.92.254.6:5003/"
+    />
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-name"
+      ><i class="fa fa-tag"></i>
+      Name</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-name"
+      data-i18n="[placeholder]node-red:common.label.name"
+    />
+  </div>
+</script>
+<script type="text/html" data-help-name="peekaboo-human-detector-service">
+  <p>
+    You can set Host to access a Human Detector container deployed locally or on
+    the cloud.
+  </p>
+  <h3>Default service</h3>
+  <p><b>Host</b>: http://54.92.254.6:5003/</p>
+  <p>
+    For more information on deploying this container locally, check out our
+    <a
+      href="https://github.com/haojian/data-centered-privacy/tree/master/runtime/_microservices"
+      >GitHub</a
+    >
+  </p>
+</script>
+
+<!-- Object Detection service -->
+<script type="text/javascript">
+  RED.nodes.registerType("peekaboo-object-detection-service", {
+    category: "config",
+    defaults: {
+      host: {
+        value: "http://localhost:5000",
+        required: true,
+      },
+
+      name: { value: "localhost" },
+    },
+    credentials: {
+      temp: { type: "text" },
+    },
+    label: function () {
+      return this.name;
+    },
+    oneditprepare: function () {},
+  });
+</script>
+<script type="text/html" data-template-name="peekaboo-object-detection-service">
+  <div class="form-row">
+    <label for="node-config-input-host"
+      ><i class="fa fa-globe"></i>
+      Host</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-host"
+      placeholder="http://localhost:5000"
+    />
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-name"
+      ><i class="fa fa-tag"></i>
+      Name</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-name"
+      data-i18n="[placeholder]node-red:common.label.name"
+    />
+  </div>
+</script>
+<script type="text/html" data-help-name="peekaboo-object-detection-service">
+  <p>
+    You can set Host to access an Object Detection container deployed locally or
+    on the cloud.
+  </p>
+  <p>No default service available. Requires Coral TPU</p>
+  <p>
+    For more information on deploying this container locally, check out our
+    <a
+      href="https://github.com/haojian/data-centered-privacy/tree/master/runtime/_microservices"
+      >GitHub</a
+    >
+  </p>
+</script>
+
+<!-- Face Detection service -->
+<script type="text/javascript">
+  RED.nodes.registerType("peekaboo-face-detection-service", {
+    category: "config",
+    defaults: {
+      host: {
+        value: "http://localhost:5000",
+        required: true,
+      },
+
+      name: { value: "localhost" },
+    },
+    credentials: {
+      temp: { type: "text" },
+    },
+    label: function () {
+      return this.name;
+    },
+    oneditprepare: function () {},
+  });
+</script>
+<script type="text/html" data-template-name="peekaboo-face-detection-service">
+  <div class="form-row">
+    <label for="node-config-input-host"
+      ><i class="fa fa-globe"></i>
+      Host</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-host"
+      placeholder="http://localhost:5000"
+    />
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-name"
+      ><i class="fa fa-tag"></i>
+      Name</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-name"
+      data-i18n="[placeholder]node-red:common.label.name"
+    />
+  </div>
+</script>
+<script type="text/html" data-help-name="peekaboo-face-detection-service">
+  <p>
+    You can set Host to access an Face Detection container deployed locally or
+    on the cloud.
+  </p>
+  <p>No default service available. Requires Coral TPU.</p>
+  <p>
+    For more information on deploying this container locally, check out our
+    <a
+      href="https://github.com/haojian/data-centered-privacy/tree/master/runtime/_microservices"
+      >GitHub</a
+    >
+  </p>
+</script>
+
+<!-- Voice Activity Detection service -->
+<script type="text/javascript">
+  RED.nodes.registerType("peekaboo-voice-activity-detector-service", {
+    category: "config",
+    defaults: {
+      host: {
+        value: "http://localhost:5000",
+        required: true,
+      },
+
+      name: { value: "localhost" },
+    },
+    credentials: {
+      temp: { type: "text" },
+    },
+    label: function () {
+      return this.name;
+    },
+    oneditprepare: function () {},
+  });
+</script>
+<script
+  type="text/html"
+  data-template-name="peekaboo-voice-activity-detector-service"
+>
+  <div class="form-row">
+    <label for="node-config-input-host"
+      ><i class="fa fa-globe"></i>
+      Host</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-host"
+      placeholder="http://localhost:5000"
+    />
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-name"
+      ><i class="fa fa-tag"></i>
+      Name</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-name"
+      data-i18n="[placeholder]node-red:common.label.name"
+    />
+  </div>
+</script>
+<script
+  type="text/html"
+  data-help-name="peekaboo-voice-activity-detector-service"
+>
+  <p>
+    You can set Host to access an Voice Activity Detector container deployed
+    locally or on the cloud.
+  </p>
+  <p>
+    For more information on deploying this container locally, check out our
+    <a
+      href="https://github.com/haojian/data-centered-privacy/tree/master/runtime/_microservices"
+      >GitHub</a
+    >
+  </p>
+</script>

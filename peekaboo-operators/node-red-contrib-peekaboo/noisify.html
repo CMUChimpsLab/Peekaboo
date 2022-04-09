@@ -1,0 +1,256 @@
+<link href="widgets/helptip.css" rel="stylesheet" />
+<script src="peekaboo/dom-util.js"></script>
+<script type="text/javascript">
+  RED.nodes.registerType("noisify", {
+    category: "peekaboo",
+    color: "#E2A0FF",
+    defaults: {
+      name: { value: "noisify" },
+      datatype: { value: "" },
+      noisifytarget: { value: ""},
+      customtabularfield: {value: ""},
+
+      blurradius: {value: 0},
+      blurfixednoise: {value: false},
+      pitchshift: {value: 0},
+      pitchfixednoise: {value: false},
+      temposhift: {value: 0},
+      tempofixednoise: {value: false},
+      scaleshift: {value: 0},
+      scalefixednoise: {value: false},
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-user-secret",
+    label: function () {
+      return this.name || "noisify";
+    },
+    oneditprepare: async function () {
+      const node = this;
+
+      // Load model map from dom-util.js
+      const modelMap = await loadModelMap();
+
+      $(".image-noisify-options").hide();
+      $(".audio-noisify-options").hide();
+      $(".scalar-noisify-options").hide();
+
+      function updateNoisifyOptions(curtype) {
+        $(".image-noisify-options").hide();
+        $(".audio-noisify-options").hide();
+        $(".scalar-noisify-options").hide();
+        
+        if (curtype === "image") {
+          $(".image-noisify-options").show();
+        } else if (curtype === "audio") {
+          $(".audio-noisify-options").show();
+        } else {
+          $(".scalar-noisify-options").show();
+        }
+      }
+
+      function updateTargetMenubyDatatype(curtype, curtarget) {
+        if (modelMap[curtype] != null) {
+          var optionlist = modelMap[curtype].concat(["raw"]);
+          updateTargets(optionlist, curtarget, "noisify");
+        } else if (curtype === "radio") {
+          var optionlist = ["phase", "uuid", "amplitude"];
+          updateTargets(optionlist, curtarget, "noisify");
+        } else if (curtype === "tabular") {
+          var optionlist = ["custom"];
+          updateTargets(optionlist, curtarget, "noisify");
+        } else {
+          updateTargets(["raw"], curtarget, "noisify")
+        }
+        updateNoisifyOptions(curtype);
+      }
+
+      $("#node-input-datatype").on("change", function () {
+        var curtype = $("#node-input-datatype").val();
+        if (curtype) {
+          updateTargetMenubyDatatype(curtype, node.noisifytarget);
+        }
+      });
+
+      $("#node-input-noisifytarget").on("change", function () {
+        var curtarget = $("#node-input-noisifytarget").val();
+        if (curtarget == "custom") {
+          $(".noisify-customtabularfield").show();        
+        } else {
+          $(".noisify-customtabularfield").hide();
+        }
+      });
+
+      var typedInput_ids = ["#node-input-blurradius", 
+                            "#node-input-pitchfactor", 
+                            "#node-input-tempofactor", 
+                            "#node-input-scalefactor"];
+      typedInput_ids.forEach(element => {
+          $(element).typedInput({
+              type: "num",
+              types: ["num"]
+          });
+      });
+
+      // Load saved state
+      $("#node-input-datatype").trigger("change");
+      $("#node-input-noisifytarget").trigger("change");
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="noisify">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-datatype"><i class="fa fa-files-o"></i> Data Type</label>
+    <select type="text" id="node-input-datatype" style="width:70%;">
+      <option value="image" selected>image</option>
+      <!-- <option value="video">video</option> -->
+      <option value="audio">audio</option>
+      <option value="radio">radio</option>
+      <option value="scalar">scalar</option>
+      <option value="tabular">tabular</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label  for="node-input-noisifytarget"> <i class="fa fa-dot-circle-o"></i> Target  </label>
+    <select type="text" id="node-input-noisifytarget" style="width:70%;"></select>
+  </div>
+
+  <div class="form-row noisify-customtabularfield">
+    <label for="node-input-customtabularfield"><i class="fa fa-file-o"></i> Tabular field</label>
+    <input type="text" id="node-input-customtabularfield" />
+  </div>
+
+  <div class="form-row" id="target-options">
+    <label id="target-options-label">
+      <i class="fa fa-cogs"></i>
+      Options
+      <i class="fa fa-caret-down" id="target-options-caret"></i>
+    </label>
+    <div id="target-options-container" style="margin-left: 5%;">
+        <div class="form-row image-noisify-options">
+          <label for="node-input-blurradius"><i class="fa fa-cogs"></i> Blur radius</label>
+          <input type="text" id="node-input-blurradius" style="width:20%;" placeholder="50"/> 
+          <input type="checkbox" id="node-input-blurfixednoise" style="width:25px; margin-bottom: 5px;" >
+          <label style="width: 150px" for="node-input-blurfixednoise">Fixed noise           
+            <span class="help-tip">
+              <p>If checked, the operator will inject a fixed noise to the data.</p>
+            </span>
+          </label>
+        </div>
+
+        <div class="form-row audio-noisify-options">
+          <label for="node-input-pitchshift"><i class="fa fa-cogs"></i> Pitch shift</label>
+          <input type="text" id="node-input-pitchshift" style="width:20%;" placeholder="0"/> 
+          <input type="checkbox" id="node-input-pitchfixnoise" style="width:25px; margin-bottom: 5px;" >
+          <label style="width: 150px" for="node-input-pitchfixnoise">Fixed noise           
+            <span class="help-tip">
+              <p>If checked, the operator will inject a fixed noise to the data.</p>
+            </span>
+          </label>
+          <br/>
+          <label for="node-input-temposhift"><i class="fa fa-cogs"></i> Tempo shift</label>
+          <input type="text" id="node-input-temposhift" style="width:20%;" placeholder="0"/> 
+          <input type="checkbox" id="node-input-tempofixednoise" style="width:25px; margin-bottom: 5px;" >
+          <label style="width: 150px" for="node-input-tempofixednoise">Fixed noise           
+            <span class="help-tip">
+              <p>If checked, the operator will inject a fixed noise to the data.</p>
+            </span>
+          </label>
+        </div>
+
+        <div class="form-row scalar-noisify-options">
+          <label for="node-input-scaleshift"><i class="fa fa-cogs"></i> Scale noise</label>
+          <input type="text" id="node-input-scaleshift" style="width:20%;" placeholder="0"/> 
+          <input type="checkbox" id="node-input-scalefixednoise" style="width:25px; margin-bottom: 5px;" >
+          <label style="width: 150px" for="node-input-scalefixednoise">Fixed noise           
+            <span class="help-tip">
+              <p>If checked, the operator will inject a fixed noise to the data.</p>
+            </span>
+          </label>
+        </div>
+    </div>
+    <div class="form-tips" style="margin-left: 10%; width:70%;"><b>Caution:</b> This operator can only noisify image, audio, and scalar values. If the data type is tabular, the value for the selected key should be scalar.</div>
+  </div>
+</script>
+
+<!-- noisify help page -->
+<script type="text/html" data-help-name="noisify">
+  <p>
+    Noisifies the data to reduce identifiable features.
+  </p>
+
+  <hr />
+  <h3>Inputs:</h3>
+  <dl class="message-properties">
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>
+        An array of data objects containing raw and/or processed
+        inferences. See
+        <a href="#data-object">data object</a>
+      </dd>
+    </dl>
+    <h3>Outputs:</h3>
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>
+        An array of data objects with noisified `data` fields. The data
+        will have been noisified according to the target if its datatype matched
+        this node's configuration. Note: this node consumes any inferences
+        present on a matching data object.
+      </dd>
+    </dl>
+    <dl class="message-properties">
+      <dt>performance <span class="property-type">dict</span></dt>
+      <dd>Performance information for this node</dd>
+    </dl>
+    <br />
+    <div id="data-object">
+      <h3>data object</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in <i>data</i> e.g. raw</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data stored in <i>data</i> e.g. image, audio</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">Buffer | Jimp | [dict] | any</span></dt>
+        <dd>The raw or noisified data</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>performance <span class="property-type">dict</span></dt>
+        <dd>Performance information for processing this data object</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>inference <span class="property-type">[inference]</span></dt>
+        <dd>An array of inferences extrapolated from this data object.
+          See <a href="#inference">inference</a>
+        </dd>
+      </dl>
+    </div>
+
+    <div id="inference">
+      <h3>inference</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in this inference e.g. face, person</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data in this inference e.g. tabular, scalar</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">[string] | [dict] | any</span></dt>
+        <dd>Inference data extrapolated from the data object</dd>
+      </dl>
+    </div>
+  </dl>
+</script>

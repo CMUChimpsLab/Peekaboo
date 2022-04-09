@@ -1,0 +1,409 @@
+<link href="widgets/select2.min.css" rel="stylesheet" />
+<script src="widgets/select2.min.js"></script>
+<script type="text/javascript">
+  RED.nodes.registerType("extract", {
+    category: "peekaboo",
+    color: "#06D6A0",
+    defaults: {
+      name: { value: "" },
+      datatype: { value: "audio" },
+      target: { value: "speech" },
+      model: { value: "max-stt" },
+      tabularfield: { value: "accelerationX" },
+      fftresolution: { value: "8" },
+      "peekaboo-speech-text-service": {
+        value: "",
+        type: "peekaboo-speech-text-service",
+      },
+      "peekaboo-heart-rate-service": {
+        value: "",
+        type: "peekaboo-heart-rate-service",
+      },
+      "peekaboo-pose-extraction-service": {
+        value: "",
+        type: "peekaboo-pose-extraction-service",
+      },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-user-secret",
+    label: function () {
+      return this.name || "extract";
+    },
+    oneditprepare: async function () {
+      loadInferenceNode(this, "extract");
+
+      const toggleFieldVisibility = () => {
+        $("#fftResolution-input").hide();
+        $("#tabularfield-input").hide();
+
+        const target = $("#node-input-target").val();
+        const datatype = $("#node-input-datatype").val();
+        if (target === "freqspectrum") {
+          if (datatype === "audio") {
+            $("#fftResolution-input").show();
+          } else if (datatype === "tabular") {
+            $("#tabularfield-input").show();
+          }
+        }
+      };
+
+      $("#node-input-datatype").on("change", toggleFieldVisibility);
+      $("#node-input-target").on("change", toggleFieldVisibility);
+    },
+  });
+</script>
+<script type="text/html" data-template-name="extract">
+  <style>
+    .select2-results {
+      font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+      font-size: 14px;
+    }
+  </style>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" />
+  </div>
+  <!-- Datatype selection -->
+  <div class="form-row">
+    <label for="node-input-datatype"
+      ><i class="fa fa-code"></i> Data Type</label
+    >
+    <select
+      type="text"
+      id="node-input-datatype"
+      style="width:70%;"
+      class="js-example-basic-single"
+    ></select>
+  </div>
+  <!-- Target selection -->
+  <div class="form-row">
+    <label for="node-input-target"><i class="fa fa-code"></i> Target</label>
+    <select
+      type="text"
+      id="node-input-target"
+      style="width:70%; font-family: 'sans-serif'"
+      class="js-example-basic-single"
+    ></select>
+  </div>
+  <!-- Target options -->
+  <div class="form-row" id="target-options">
+    <label id="target-options-label">
+      <i class="fa fa-cogs"></i>
+      Options
+      <i class="fa fa-caret-down" id="target-options-caret"></i>
+    </label>
+    <!-- Model selection -->
+    <div id="target-options-container" style="margin-left: 10%;">
+      <div class="form-row">
+        <label for="node-input-model"><i class="fa fa-cog"></i> Model</label>
+        <select
+          type="text"
+          id="node-input-model"
+          style="width:70%; font-family: 'sans-serif'"
+          class="js-example-basic-single"
+        ></select>
+      </div>
+      <!-- Start service containers -->
+      <div id="service-containers">
+        <!-- Speech text service -->
+        <div class="form-row" id="peekaboo-speech-text-service-container">
+          <label for="node-input-peekaboo-speech-text-service"
+            ><i class="fa fa-cloud"></i> Service</label
+          >
+          <input type="text" id="node-input-peekaboo-speech-text-service" />
+        </div>
+        <!-- Heart rate service -->
+        <div class="form-row" id="peekaboo-heart-rate-service-container">
+          <label for="node-input-peekaboo-heart-rate-service"
+            ><i class="fa fa-cloud"></i> Service</label
+          >
+          <input type="text" id="node-input-peekaboo-heart-rate-service" />
+        </div>
+        <!-- Pose detection service -->
+        <div class="form-row" id="peekaboo-pose-extraction-service-container">
+          <label for="node-input-peekaboo-pose-extraction-service"
+            ><i class="fa fa-cloud"></i> Service</label
+          >
+          <input type="text" id="node-input-peekaboo-pose-extraction-service" />
+        </div>
+      </div>
+      <!-- End service containers -->
+      <div class="form-row" id="tabularfield-input">
+        <label for="node-input-tabularfield"
+          ><i class="fa fa-cogs"></i> Tabular Field</label
+        >
+        <input
+          type="text"
+          id="node-input-tabularfield"
+          style="width:20%;"
+          placeholder="acceleration"
+        />
+      </div>
+      <div class="form-row" id="fftResolution-input">
+        <label for="node-input-fftResolution"
+          ><i class="fa fa-cogs"></i> FFT Resolution</label
+        >
+        <input
+          type="text"
+          id="node-input-fftResolution"
+          style="width:20%;"
+          placeholder="8"
+        />
+      </div>
+    </div>
+  </div>
+</script>
+
+<!-- extract help page -->
+<script type="text/html" data-help-name="extract">
+  <p>Extracts features from the data.</p>
+
+  <hr />
+  <h3>Inputs:</h3>
+  <dl class="message-properties">
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>An array of <a href="#data-object">data objects</a>.</dd>
+    </dl>
+    <h3>Outputs:</h3>
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">[dict]</span></dt>
+      <dd>An array of data objects.</dd>
+    </dl>
+    <dl class="message-properties">
+      <dt>performance <span class="property-type">dict</span></dt>
+      <dd>Performance information for this node</dd>
+    </dl>
+    <br />
+    <div id="data-object">
+      <h3>data object</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in <i>data</i> e.g. raw</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data stored in <i>data</i> e.g. image, audio</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>
+          data <span class="property-type">Buffer | Jimp | [dict] | any</span>
+        </dt>
+        <dd>The raw data</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>performance <span class="property-type">dict</span></dt>
+        <dd>Performance information for processing this data object</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>inference <span class="property-type">[inference]</span></dt>
+        <dd>
+          An array of inferences extrapolated from this data object. See
+          <a href="#inference">inference</a>
+        </dd>
+      </dl>
+    </div>
+
+    <div id="inference">
+      <h3>inference</h3>
+      <dl class="message-properties">
+        <dt>contenttype <span class="property-type">string</span></dt>
+        <dd>The type of content present in this inference e.g. face, person</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>datatype <span class="property-type">string</span></dt>
+        <dd>The type of data in this inference e.g. tabular, scalar</dd>
+      </dl>
+      <dl class="message-properties">
+        <dt>data <span class="property-type">[string] | [dict] | any</span></dt>
+        <dd>Inference data extrapolated from the data object</dd>
+      </dl>
+    </div>
+  </dl>
+</script>
+
+<!-- Service configuration nodes -->
+<!-- Speech text service -->
+<script type="text/javascript">
+  RED.nodes.registerType("peekaboo-speech-text-service", {
+    category: "config",
+    defaults: {
+      host: {
+        value:
+          "http://max-speech-to-text-converter.codait-prod-41208c73af8fca213512856c7a09db52-0000.us-east.containers.appdomain.cloud/",
+        required: true,
+      },
+      name: { value: "cloud" },
+    },
+    credentials: {
+      temp: { type: "text" },
+    },
+    label: function () {
+      return this.name;
+    },
+    oneditprepare: function () {},
+  });
+</script>
+<script type="text/html" data-template-name="peekaboo-speech-text-service">
+  <div class="form-row">
+    <label for="node-config-input-host"
+      ><i class="fa fa-globe"></i>
+      Host</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-host"
+      placeholder="http://localhost:5000"
+    />
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-name"
+      ><i class="fa fa-tag"></i>
+      Name</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-name"
+      data-i18n="[placeholder]node-red:common.label.name"
+    />
+  </div>
+</script>
+<script type="text/html" data-help-name="peekaboo-speech-text-service">
+  <p>
+    You can set Host to access a Speech-to-Text container deployed locally or on
+    the cloud.
+  </p>
+  <h3>Default service</h3>
+  <p><b>Host</b>: http://54.92.254.6:5001/</p>
+  <p>
+    For more information on deploying this container locally, check out our
+    <a
+      href="https://github.com/haojian/data-centered-privacy/tree/master/runtime/_microservices"
+      >GitHub</a
+    >
+  </p>
+</script>
+
+<!-- Heart rate service -->
+<script type="text/javascript">
+  RED.nodes.registerType("peekaboo-heart-rate-service", {
+    category: "config",
+    defaults: {
+      host: {
+        value: "http://54.92.254.6:5002/",
+        required: true,
+      },
+
+      name: { value: "cloud" },
+    },
+    credentials: {
+      temp: { type: "text" },
+    },
+    label: function () {
+      return this.name;
+    },
+    oneditprepare: function () {},
+  });
+</script>
+<script type="text/html" data-template-name="peekaboo-heart-rate-service">
+  <div class="form-row">
+    <label for="node-config-input-host"
+      ><i class="fa fa-globe"></i>
+      Host</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-host"
+      placeholder="http://54.92.254.6:5002/"
+    />
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-name"
+      ><i class="fa fa-tag"></i>
+      Name</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-name"
+      data-i18n="[placeholder]node-red:common.label.name"
+    />
+  </div>
+</script>
+<script type="text/html" data-help-name="peekaboo-heart-rate-service">
+  <p>
+    You can set Host to access a Heart Rate Analyzer container deployed locally
+    or on the cloud.
+  </p>
+  <h3>Default service</h3>
+  <p><b>Host</b>: http://54.92.254.6:5002/</p>
+  <p>
+    For more information on deploying this container locally, check out our
+    <a
+      href="https://github.com/haojian/data-centered-privacy/tree/master/runtime/_microservices"
+      >GitHub</a
+    >
+  </p>
+</script>
+
+<!-- PoseNet service -->
+<script type="text/javascript">
+  RED.nodes.registerType("peekaboo-pose-extraction-service", {
+    category: "config",
+    defaults: {
+      host: {
+        value: "http://192.168.1.217:5005/",
+        required: true,
+      },
+      name: { value: "cloud" },
+    },
+    credentials: {
+      temp: { type: "text" },
+    },
+    label: function () {
+      return this.name;
+    },
+    oneditprepare: function () {},
+  });
+</script>
+<script type="text/html" data-template-name="peekaboo-pose-extraction-service">
+  <div class="form-row">
+    <label for="node-config-input-host"
+      ><i class="fa fa-globe"></i>
+      Host</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-host"
+      placeholder="http://localhost:5000"
+    />
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-name"
+      ><i class="fa fa-tag"></i>
+      Name</span
+    ></label>
+    <input
+      type="text"
+      id="node-config-input-name"
+      data-i18n="[placeholder]node-red:common.label.name"
+    />
+  </div>
+</script>
+<script type="text/html" data-help-name="peekaboo-pose-extraction-service">
+  <p>
+    You can set Host to access a Pose Extraction container deployed locally or
+    on the cloud.
+  </p>
+  <p>No default service available. Requires Coral TPU</p>
+  <p>
+    For more information on deploying this container locally, check out our
+    <a
+      href="https://github.com/haojian/data-centered-privacy/tree/master/runtime/_microservices"
+      >GitHub</a
+    >
+  </p>
+</script>

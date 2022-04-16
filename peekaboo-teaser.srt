@@ -1,0 +1,56 @@
+1
+00:00:02,560 --> 00:00:09,380
+Imagine a smart TV developer claims to collect
+summarized data to their server once a week.
+
+2
+00:00:09,380 --> 00:00:14,949
+How can outsiders validate this claim, while
+the TV, the communication, and the server
+
+3
+00:00:14,949 --> 00:00:16,990
+are all black-boxes?
+
+4
+00:00:16,990 --> 00:00:22,699
+In this paper, we ask how to help developers
+avoid collecting unnecessary data and make
+
+5
+00:00:22,699 --> 00:00:25,339
+it transparent.
+
+6
+00:00:25,339 --> 00:00:31,210
+We introduce peekaboo, a new architecture
+that leverages an in-home hub to pre-process
+
+7
+00:00:31,210 --> 00:00:32,210
+outgoing data.
+
+8
+00:00:32,210 --> 00:00:38,770
+In Peekaboo, developers create a data collection
+manifest using a fixed set of chainable operators.
+
+9
+00:00:38,770 --> 00:00:46,500
+The hub then assembles and executes a pre-processing
+pipeline using operators pre-loaded on the
+
+10
+00:00:46,500 --> 00:00:47,500
+hub.
+
+11
+00:00:47,500 --> 00:00:53,210
+In doing so, developers collect only necessary
+data; outsiders can verify data collection
+
+12
+00:00:53,210 --> 00:00:57,110
+behaviors; and the hub can offer built-in
+privacy features.
+

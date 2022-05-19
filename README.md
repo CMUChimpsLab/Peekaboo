@@ -42,7 +42,7 @@ Follow the instructions in [DEVELOP.md](https://github.com/CMUChimpsLab/Peekaboo
 ## WEB Manifest IDE UI
 
 
-[![Watch the video](https://img.youtube.com/vi/kbPu4AJemlg/maxresdefault.jpg)](https://youtu.be/kbPu4AJemlg)
+[![Watch the video](doc/ide-demo.gif)](https://youtu.be/kbPu4AJemlg)
 
 
 

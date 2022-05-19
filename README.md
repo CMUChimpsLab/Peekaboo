@@ -18,17 +18,33 @@ Our approach also facilitates a number of privacy features that can be supported
 For details, see our IEEE S&amp;P 2022 paper: [Peekaboo: A Hub-Based Approach to Enable Transparency in Data Processing within Smart Homes](http://haojianj.in/resource/pdf/peekaboo-oakland22.pdf)
 
 
+
+
+
 ## System Requirements
 
 To run Peekaboo, we suggest you use a dedicated RaspberryPi. You can also test the system on a laptop, but a few machine learning libraries will not work since they are compiled on ARM architecture. 
 
-Suggest setup: 
+Our setup: 
 
-1. Rapsberry Pi 4B with 8GB memory.
+1. Raspberry Pi 4 Model B (>4 GB memory).
 2. [Google Coral USB Accelerator](https://coral.ai/products/accelerator/)
 
 
-## Installation
+## Installation & Contributing
+
+Follow the directions in [INSTALL.md](https://github.com/CMUChimpsLab/Peekaboo/blob/main/INSTALL.md) to install Peekaboo on your own hardware.  
+
+Follow the instructions in [DEVELOP.md](https://github.com/CMUChimpsLab/Peekaboo/blob/main/DEVELOP.md) to contirbute new operators/functionalities to enhance Peekaboo. 
 
 
 
+## WEB Manifest IDE UI
+
+<video src='doc/web-ide-demo.mp4' width=800></video>
+
+
+
+## Funding
+This research was supported in part by the National Science Foundation under Grant No. CNS-1801472, CNS-1837607, and CNS-2007786, Cisco, Intel, Infineon, and Air Force
+Research Laboratory under agreement number FA8750-15-2-0281. 

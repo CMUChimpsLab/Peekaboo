@@ -9,7 +9,7 @@ architecture for developers to build smart home apps. Peekaboo has three key ide
 of ***operators*** with well-defined semantics, authoring a streamoriented pipeline similar to Unix pipes. This pipeline preprocesses raw data from IoT devices in the home (e.g. sensor data or usage history) into the granularity needed by the cloud service. 
 - Third, an ***in-home trusted Peekaboo hub*** mediates between all devices in the home and the outside Internet. This hub enforces the declared behaviors in the manifests, and also locally runs all of the operators specified in these manifests to transform raw data before it is relayed to any cloud services.
 
-<img src="doc/architecture-overview.jpeg"/>
+<img src="doc/architecture-overview.jpeg" width="800px"/>
 
 Combined, these ideas make it so that developers can reduce data collection by running pre-processing tasks on the in-home trusted hub, and users and third-party auditors can inspect data behaviors by analyzing these manifests as well as any actual data flows. 
 

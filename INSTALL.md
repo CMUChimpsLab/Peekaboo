@@ -27,8 +27,8 @@ hostname -I
 ```
 ![](assets/ip-address.jpg)
 
-5. Start the server using the `node-red` command
+6. Start the server using the `node-red` command
 ![](assets/node-red-start.jpg)
 
-6. You can then connect to the server on your local computer browser by typing the IP address we found earlier, with `:1880` at the end:
+7. You can then connect to the server on your local computer browser by typing the IP address we found earlier, with `:1880` at the end:
 ![](assets/node-red.jpg)

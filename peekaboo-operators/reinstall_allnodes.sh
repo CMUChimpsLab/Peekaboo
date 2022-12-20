@@ -1,18 +1,12 @@
 # #!/bin/bash
-# bash reinstall_allnodes.sh
-nodearray=(
-       "node-red-contrib-peekaboo" 
-       )
-
+package="node-red-contrib-peekaboo"
 nodedir=$PWD
 
+# Install dependencies
+cd $package
+npm install
+
 cd ~/.node-red
-
-for i in "${nodearray[@]}"
-do
-    echo "Current directory is $PWD"
-	echo "installing ${nodedir}/$i"
-    npm install "${nodedir}/$i"
-done
-
-# npm install ~/projects/data-centered-privacy/programmingmodel/node-red-contrib-peekaboo
+echo "Current directory is $PWD"
+echo "Installing ${nodedir}/${package}"
+npm install ${nodedir}/${package}
